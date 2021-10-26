@@ -115,46 +115,7 @@ def initializeMembershipMatrix():  # initializing the membership matrix
 
 
 membership_mat = initializeMembershipMatrix()
-
 print(membership_mat)
-# print('\n')
-# cluster_mem_val = list(zip(*membership_mat))
-# print('\n')
-# print(cluster_mem_val[0])
-# print('\n')
-# print(list(cluster_mem_val[0]))
-# print('\n')
-# x = list(cluster_mem_val[j] for j in range(k))
-# print(list(zip(*membership_mat)))
-# print('\n')
-# print('\n')
-# print(x)
-
-# cluster_mem_val = list(zip(*membership_mat))
-# cluster_centers = []
-# for j in range(k):
-#         x = list(cluster_mem_val[j])
-
-#         xraised = [p ** m for p in x]
-
-#         denominator = sum(xraised)
-
-#         temp_num = []
-#         for i in range(n):
-#             data_point = list(df.iloc[i])
-#             prod = [xraised[i] * val for val in data_point]
-#             temp_num.append(prod)
-#         print('\n')
-#         print(temp_num)
-#         numerator = map(sum, list(zip(*temp_num)))
-#         print('\n')
-#         print("this is numerator")
-#         print(numerator)
-#         center = [z/denominator for z in numerator]
-#         print("this is center")
-#         print(center)
-#         cluster_centers.append(center)
-
 
 def calculateClusterCenter(membership_mat):  # calculating the cluster center
     cluster_mem_val = list(zip(*membership_mat))
@@ -204,6 +165,21 @@ def updateMembershipValue(membership_mat, cluster_centers):
             membership_mat[i][j] = float(1 / den)
     return membership_mat
 
+def updateMembershipValue2(membership_mat, cluster_centers):
+    m = fuzzyCoefficientMatrix()
+    for i in range(n):
+        x = list(df.iloc[i])
+        distances = [
+            np.linalg.norm(np.array(list(map(operator.sub, x, cluster_centers[j]))))
+            for j in range(k)
+        ]
+        for j in range(k):
+            den = sum(
+                [math.pow(float(distances[j] / distances[c]), m[i]) for c in range(k)]
+            )
+            membership_mat[i][j] = float(1 / den)
+    return membership_mat
+
 
 def initDistancesMatrix():
     rows, cols = (150, 150)
@@ -213,23 +189,33 @@ def initDistancesMatrix():
         for j in range(n):
             y = list(df.iloc[j])
             dst[i][j] = distance.euclidean(x, y)
-
-    # print(np.array(dst[1]))
-    # print(np.array(dst[0]))
+    return dst
 
 
-initDistancesMatrix()
+def fuzzyCoefficientMatrix():
 
+    distances = initDistancesMatrix()
+    mL = 1
+    mU = 10
+    alpha = 2
+    delta = [0] * 150
+    dist = [0] * 150
+    fuzzyCoeff = [0] * 150
+    for i in range(n):
+        distances[i].sort()
+        for j in range(int(n / k)):
+            delta[i] += distances[i][j]
+    # print(delta[0])
+    delta.sort()
+    deltaMin = min(delta)
+    deltaMax = max(delta)
+    
+    # print(deltaMax)
+    # print(deltaMin)
+    for i in range(n):
+        fuzzyCoeff[i] = mL + (mU - mL) * (math.pow((delta[i] - deltaMin) / (deltaMax - deltaMin), alpha))
 
-# cluster_labels = list()
-# for i in range(n):
-#         max_val, idx = max((val, idx) # id of cluster(0,1,2) for x
-#                            for (idx, val) in enumerate(membership_mat[i]))
-#         print(max_val, idx)
-#         cluster_labels.append(idx)
-
-# print(cluster_labels)
-
+    return fuzzyCoeff
 
 def getClusters(membership_mat):  # getting the clusters
     cluster_labels = list()
@@ -261,13 +247,39 @@ def fuzzyCMeansClustering():  # Third iteration Random vectors from data
     # for i in range (0,149):
     # print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
 
-    print(np.array(cluster_labels))
+    # print(np.array(cluster_labels))
     # print(np.array(cluster_labels).shape)
     # return cluster_labels, cluster_centers
     return cluster_labels, cluster_centers, acc
 
+def MCFCMeansClustering():
+    # Membership Matrix
+    membership_mat = initializeMembershipMatrix()
+    curr = 0
+    acc = []
+    while curr < MAX_ITER:
+        cluster_centers = calculateClusterCenter(membership_mat)
+        membership_mat = updateMembershipValue2(membership_mat, cluster_centers)
+        cluster_labels = getClusters(membership_mat)
 
-labels, centers, acc = fuzzyCMeansClustering()
+        acc.append(cluster_labels)
+
+        if curr == 0:
+            print("Cluster Centers:")
+            print(np.array(cluster_centers))
+        curr += 1
+    print("---------------------------")
+    print("Partition matrix:")
+    for i in range (0,149):
+        print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
+
+    # print(np.array(cluster_labels))
+    # print(np.array(cluster_labels).shape)
+    # return cluster_labels, cluster_centers
+    return cluster_labels, cluster_centers, acc
+
+labels, centers, acc = MCFCMeansClustering()
+# labels, centers, acc = MCFCMeansClustering()
 a = accuracy(labels, class_labels)
 
 
@@ -290,7 +302,7 @@ print("Accuracy = ", a)
 # accuracy = accuracy(labels, class_labels)
 # print("---------------------------")
 # print("Accuracy: " ,accuracy)
-print("Cluster center vectors:")  # final cluster centers
+print("Cluster center final:")  # final cluster centers
 print(np.array(centers))
 print(list(df.iloc[1]))
 # sepal_df = df_full.iloc[:,0:2]
