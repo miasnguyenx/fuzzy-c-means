@@ -51,23 +51,23 @@ e = 0.01
 # temp_list = [x for x in random_num_list]
 # print(temp_list)
 
-plt.figure(figsize=(10, 10))  # scatter plot of sepal length vs sepal width
-plt.scatter(list(df.iloc[:, 0]), list(df.iloc[:, 1]), marker="o")
-plt.axis("equal")
-plt.xlabel("Sepal Length", fontsize=16)
-plt.ylabel("Sepal Width", fontsize=16)
-plt.title("Sepal Plot", fontsize=22)
-plt.grid()
-plt.show()
+# plt.figure(figsize=(10, 10))  # scatter plot of sepal length vs sepal width
+# plt.scatter(list(df.iloc[:, 0]), list(df.iloc[:, 1]), marker="o")
+# plt.axis("equal")
+# plt.xlabel("Sepal Length", fontsize=16)
+# plt.ylabel("Sepal Width", fontsize=16)
+# plt.title("Sepal Plot", fontsize=22)
+# plt.grid()
+# plt.show()
 
-plt.figure(figsize=(10, 10))  # scatter plot of petal length vs sepal width
-plt.scatter(list(df.iloc[:, 2]), list(df.iloc[:, 3]), marker="o")
-plt.axis("equal")
-plt.xlabel("Petal Length", fontsize=16)
-plt.ylabel("Petal Width", fontsize=16)
-plt.title("Petal Plot", fontsize=22)
-plt.grid()
-plt.show()
+# plt.figure(figsize=(10, 10))  # scatter plot of petal length vs sepal width
+# plt.scatter(list(df.iloc[:, 2]), list(df.iloc[:, 3]), marker="o")
+# plt.axis("equal")
+# plt.xlabel("Petal Length", fontsize=16)
+# plt.ylabel("Petal Width", fontsize=16)
+# plt.title("Petal Plot", fontsize=22)
+# plt.grid()
+# plt.show()
 
 
 def accuracy(cluster_labels, class_labels):

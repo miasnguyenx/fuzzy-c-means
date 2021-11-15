@@ -1,3 +1,4 @@
+from collections import Counter
 import pandas as pd  # reading all required header files
 import numpy as np
 import random
@@ -6,58 +7,58 @@ import math
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from scipy.stats import multivariate_normal  # for generating pdf
-from collections import Counter
 
-
+# Show data
 df_full = pd.read_csv("Iris.csv")  # iris data
 df_full.head()
 
+# Drop a column
 df_full = df_full.drop(["Id"], axis=1)
 df_full.shape
 
 columns = list(df_full.columns)  # column now is an array variable
-# print(columns)
+
 # features is column without species attribute
 features = columns[: len(columns) - 1]
 # print(features)
 class_labels = list(df_full[columns[-1]])
-
 # print(class_labels)
 df = df_full[features]
-# test =[ df_full[df_full['Species'] == "Iris-versicolor"].index ]
-# print(test)
+print(df.head())
 # Number of Clusters
+#
+#
+# ---------------- Parameters -------------------
+#
+#
+# Number of Clusters
+k = 3
+# Maximum number of iterations untill termination
+MAX_ITER = 50
+# Number of data points
 n = len(df)
+# Fuzzy parameter
+m = 2  # Select a value greater than 1 else it will be knn
+# terminated creterion for FCM clustering
+e = 0.01
+mL = 2.1
+mU = 9.1
+alpha = 2.5
 
-
-def paramInit(k, max_iter, m, mL, mU, alpha, e):
-    k = k
-    # Maximum number of iterations
-    MAX_ITER = max_iter
-    # Number of data points
-
-    # Fuzzy parameter
-    m = m  # Select a value greater than 1 else it will be knn
-
-    mL = mL
-    mU = mU
-    alpha = alpha
-    # terminated creterion
-    e = e
-    return k, MAX_ITER, m, mL, mU, alpha, e
-
-k, MAX_ITER, m, mL, mU, alpha, e = paramInit()
-
-# random_num_list = [random.random() for i in range(k)]
-
-# print([random.random() for i in range(k)]) #how to random a k-values array
-# print(random_num_list)
-# summation = sum(random_num_list)
-# print(summation)
+#
+#
+# ----------------End Parameters -------------------
+#
+#
 
 # temp_list = [x for x in random_num_list]
 # print(temp_list)
 
+#
+#
+# --------------- Graph show --------------
+#
+#
 # plt.figure(figsize=(10, 10))  # scatter plot of sepal length vs sepal width
 # plt.scatter(list(df.iloc[:, 0]), list(df.iloc[:, 1]), marker="o")
 # plt.axis("equal")
@@ -75,13 +76,19 @@ k, MAX_ITER, m, mL, mU, alpha, e = paramInit()
 # plt.title("Petal Plot", fontsize=22)
 # plt.grid()
 # plt.show()
+#
+#
+# ---------------End Graph show --------------
+#
+#
+
+# Calculate accuracy for a specify dataset
 
 
 def accuracy(cluster_labels, class_labels):
     correct_pred = 0
-    # print(cluster_labels)
+    # find max of a set base on key value as the element has the most occurences
     seto = max(set(labels[0:50]), key=labels[0:50].count)
-
     vers = max(set(labels[50:100]), key=labels[50:100].count)
     virg = max(set(labels[100:]), key=labels[100:].count)
 
@@ -130,21 +137,24 @@ def initializeMembershipMatrix():  # initializing the membership matrix
 
 membership_mat = initializeMembershipMatrix()
 # print(membership_mat)
+# print(list(zip(*membership_mat)))
+
+# Param: membership matrix
 
 
 def calculateClusterCenter(membership_mat):  # calculating the cluster center
     cluster_mem_val = list(zip(*membership_mat))
     cluster_centers = []
     for j in range(k):
-        x = list(cluster_mem_val[j])
-        xraised = [p ** m for p in x]
+        x = list(cluster_mem_val[j])  # Uik
+        xraised = [p ** m for p in x]  # Uik power by m
         denominator = sum(xraised)
         temp_num = []
         for i in range(n):
             data_point = list(df.iloc[i])
-            prod = [xraised[i] * val for val in data_point]
+            prod = [xraised[i] * val for val in data_point]  # Uik^m * Xi
             temp_num.append(prod)
-        # sum of list(zip(*temp_num)) is numerator of v[i]
+        # sum of list(zip(*temp_num)) is numerator of v[k]
         numerator = map(sum, list(zip(*temp_num)))
         center = [z / denominator for z in numerator]
         cluster_centers.append(center)
@@ -152,16 +162,6 @@ def calculateClusterCenter(membership_mat):  # calculating the cluster center
 
 
 cluster_centers = calculateClusterCenter(membership_mat)
-# print(cluster_centers)
-# calculateClusterCenter(membership_mat)
-
-# print(list(df.iloc[1]))
-# x = list(df.iloc[1])
-# distances = [np.linalg.norm(
-#             np.array(list(map(operator.sub, x, cluster_centers[j])))) for j in range(k)]
-# print(distances)
-# Updating the membership value
-#
 
 
 def initDistancesMatrix():
@@ -177,7 +177,6 @@ def initDistancesMatrix():
 
 def fuzzyCoefficientMatrix():
     distances = initDistancesMatrix()
-
     delta = [0] * n
     dist = [0] * n
     fuzzyCoeff = [0] * n
@@ -265,7 +264,7 @@ def fuzzyCMeansClustering():  # Third iteration Random vectors from data
             print(np.array(cluster_centers))
         curr += 1
     print("---------------------------")
-    # print("Partition matrix:")
+    print("Partition matrix:")
     # for i in range (0,149):
     # print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
 
@@ -310,19 +309,18 @@ labels, centers, acc = fuzzyCMeansClustering()
 def ASWCValidationCriteria():
     eps = math.pow(10, -6)
     dst = initDistancesMatrix()
-
+    
     rows, cols = (n, k)
     InterAVGdist = [[0 for i in range(cols)] for j in range(rows)]
     IntraAVGdist = [0]*n
     minInterAVG = [0]*n
-
     occ = Counter(labels)
     # print(occ[0], occ[1], occ[2])
 
-    # rows, cols = (n, k)
-    # AVGdist = [[0 for i in range(cols)] for j in range(rows)]
+    rows, cols = (k, n)
+    cluster = [[0 for i in range(cols)] for j in range(rows)]
     count = 0
-# index of object: i
+
     for i in range(n):
         label = labels[i]
         for j in range(n):
@@ -333,10 +331,17 @@ def ASWCValidationCriteria():
         count = 0
 
     for i in range(n):
+        x = list(df.iloc[i])
+        y = labels[i]
+        cluster[y].append(x)
+
+    for i in range(n):
         for j in range(n):
             if labels[j] != labels[i]:
                 t = labels[j]
                 InterAVGdist[i][t] += dst[i][j]
+
+    # print(np.array(InterAVGdist))
 
     for i in range(n):
         for j in range(k):
@@ -345,17 +350,41 @@ def ASWCValidationCriteria():
 
         InterAVGdist[i].sort()
         minInterAVG[i] = InterAVGdist[i][1]
+
     # print(np.array(InterAVGdist))
-    print(np.array(IntraAVGdist))
-    ASWC = sum(minInterAVG[i] / (IntraAVGdist[i] + eps) for i in range(n))
+    # print(np.array(IntraAVGdist))
+
+    ASWC = sum((minInterAVG[i] / (IntraAVGdist[i] + eps)) for i in range(n))
     ASWC /= n
     return ASWC
 
 
-print(ASWCValidationCriteria())
+def ASWC_test():
+    eps = math.pow(10, -6)
+    ASWC = 0
+    intra = [0]*150
+    rows, cols = (n, k)
+    inter = [[0 for i in range(cols)] for j in range(rows)]
+    for i in range(n):
+        x = df.iloc[i]
+        label_x = labels[i]
+        intra[i] = distance.euclidean(x, centers[label_x])
+        for j in range(k):
+            if j != label_x:
+                inter[i][j] = distance.euclidean(x, centers[j])
+        inter[i].sort()
+        print(inter[i])
+        min_inter = inter[i][-2]
+        ASWC += min_inter / (intra[i] + eps)
+    ASWC /= n
+    print(ASWC)
+    return ASWC
 
-# labels, centers, acc = fuzzyCMeansClustering()
-a = accuracy(labels, class_labels)
+
+ASWC_test()
+print(ASWCValidationCriteria())
+# a = accuracy(labels, class_labels)
+
 # print(labels[1])
 # print(class_labels[0])
 # P.S. The accuracy calculation is for iris data only
@@ -367,7 +396,9 @@ a = accuracy(labels, class_labels)
 # acc_lis = np.array(acc_lis)  # calculating accuracy and std deviation 100 times
 # print("mean=", np.mean(acc_lis))
 # print("Std dev=", np.std(acc_lis))
-print("Accuracy = ", a)
+
+# print("Accuracy = ", a)
+
 # accuracy = accuracy(labels, class_labels)
 
 # accuracy = accuracy(labels, class_labels)
@@ -375,6 +406,9 @@ print("Accuracy = ", a)
 # print("Accuracy: " ,accuracy)
 print("Cluster center final:")  # final cluster centers
 print(np.array(centers))
+# for i in range (n):
+#     print(i, labels[i])
+
 # print(list(df.iloc[1]))
 # sepal_df = df_full.iloc[:,0:2]
 # sepal_df = np.array(sepal_df)
@@ -392,6 +426,7 @@ print(np.array(centers))
 
 # cov1 = np.cov(np.transpose(sepal_df))
 # cov2 = np.cov(np.transpose(sepal_df))
+
 # cov3 = np.cov(np.transpose(sepal_df))
 
 # x1 = np.linspace(4,8,150)
