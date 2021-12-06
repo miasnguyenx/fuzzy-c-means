@@ -6,7 +6,10 @@ import operator
 import math
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
-from scipy.stats import multivariate_normal  # for generating pdf
+from scipy.stats import multivariate_normal
+from sklearn import metrics
+import sklearn
+from sklearn.metrics import davies_bouldin_score
 
 # Show data
 df_full = pd.read_csv("Ecoli.csv")  # iris data
@@ -38,12 +41,12 @@ MAX_ITER = 50
 # Number of data points
 n = len(df)
 # Fuzzy parameter
-m = 1.7  # Select a value greater than 1 else it will be knn
-# terminated creterion for FCM clustering 
+m = 2  # Select a value greater than 1 else it will be knn
+# terminated creterion for FCM clustering
 e = 0.01
-mL = 4
-mU = 6
-alpha = 2
+mL = 5.5
+mU = 6.5
+alpha = 1.9
 
 #
 #
@@ -54,7 +57,7 @@ alpha = 2
 # temp_list = [x for x in random_num_list]
 # print(temp_list)
 
-# 
+#
 #
 # --------------- Graph show --------------
 #
@@ -76,13 +79,15 @@ alpha = 2
 # plt.title("Petal Plot", fontsize=22)
 # plt.grid()
 # plt.show()
-# 
+#
 #
 # ---------------End Graph show --------------
 #
 #
 
-#Calculate accuracy for a specify dataset
+# Calculate accuracy for a specify dataset
+
+
 def accuracy(cluster_labels, class_labels):
     correct_pred = 0
     # find max of a set base on key value as the element has the most occurences
@@ -138,17 +143,19 @@ membership_mat = initializeMembershipMatrix()
 # print(list(zip(*membership_mat)))
 
 # Param: membership matrix
+
+
 def calculateClusterCenter(membership_mat):  # calculating the cluster center
     cluster_mem_val = list(zip(*membership_mat))
     cluster_centers = []
     for j in range(k):
-        x = list(cluster_mem_val[j]) # Uik 
-        xraised = [p ** m for p in x] # Uik power by m
-        denominator = sum(xraised) 
+        x = list(cluster_mem_val[j])  # Uik
+        xraised = [p ** m for p in x]  # Uik power by m
+        denominator = sum(xraised)
         temp_num = []
         for i in range(n):
-            data_point = list(df.iloc[i]) #
-            prod = [xraised[i] * val for val in data_point] #Uik^m * Xi
+            data_point = list(df.iloc[i])
+            prod = [xraised[i] * val for val in data_point]  # Uik^m * Xi
             temp_num.append(prod)
         # sum of list(zip(*temp_num)) is numerator of v[k]
         numerator = map(sum, list(zip(*temp_num)))
@@ -158,6 +165,7 @@ def calculateClusterCenter(membership_mat):  # calculating the cluster center
 
 
 cluster_centers = calculateClusterCenter(membership_mat)
+
 
 def initDistancesMatrix():
     rows, cols = (n, n)
@@ -180,7 +188,6 @@ def fuzzyCoefficientMatrix():
         for j in range(int(n / k)):
             delta[i] += distances[i][j]
     # print(delta[0])
-    delta.sort()
     deltaMin = min(delta)
     deltaMax = max(delta)
 
@@ -260,8 +267,8 @@ def fuzzyCMeansClustering():  # Third iteration Random vectors from data
         curr += 1
     print("---------------------------")
     print("Partition matrix:")
-    # for i in range (0,149):
-    # print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
+    for i in range (0,149):
+        print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
 
     # print(np.array(cluster_labels))
     # print(np.array(cluster_labels).shape)
@@ -286,10 +293,10 @@ def MCFCMeansClustering():
             print("Cluster Centers:")
             print(np.array(cluster_centers))
         curr += 1
-    # print("---------------------------")
-    # print("Partition matrix:")
-    # for i in range(0, 149):
-    #     print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
+    print("---------------------------")
+    print("Partition matrix:")
+    for i in range(0, 149):
+        print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
 
     # print(np.array(cluster_labels))
     # print(np.array(cluster_labels).shape)
@@ -300,10 +307,10 @@ def MCFCMeansClustering():
 labels, centers, acc = MCFCMeansClustering()
 # labels, centers, acc = fuzzyCMeansClustering()
 
+
 def ASWCValidationCriteria():
     eps = math.pow(10, -6)
     dst = initDistancesMatrix()
-    print(dst[1])
     rows, cols = (n, k)
     InterAVGdist = [[0 for i in range(cols)] for j in range(rows)]
     IntraAVGdist = [0]*n
@@ -328,7 +335,7 @@ def ASWCValidationCriteria():
         x = list(df.iloc[i])
         y = labels[i]
         cluster[y].append(x)
-        
+
     for i in range(n):
         for j in range(n):
             if labels[j] != labels[i]:
@@ -344,14 +351,20 @@ def ASWCValidationCriteria():
 
         InterAVGdist[i].sort()
         minInterAVG[i] = InterAVGdist[i][1]
-    
+
     # print(np.array(InterAVGdist))
     # print(np.array(IntraAVGdist))
 
-    ASWC = sum((minInterAVG[i] / (IntraAVGdist[i] + eps)) for i in range (n))
+    ASWC = sum((minInterAVG[i] / (IntraAVGdist[i] + eps)) for i in range(n))
     ASWC /= n
     return ASWC
 
+
+def DB_index():
+    print("DB_score: ", sklearn.metrics.davies_bouldin_score(df, labels))
+
+
+DB_index()
 print(ASWCValidationCriteria())
 # a = accuracy(labels, class_labels)
 

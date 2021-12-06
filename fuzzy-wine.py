@@ -7,7 +7,10 @@ import operator
 import math
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
-from scipy.stats import multivariate_normal  # for generating pdf
+from scipy.stats import multivariate_normal
+from sklearn import metrics
+import sklearn
+from sklearn.metrics import davies_bouldin_score
 
 
 df_full = pd.read_csv("Wine.csv")  # iris data
@@ -23,20 +26,21 @@ features = columns[: len(columns)]
 # print(features)
 data ,class_labels = wine_data()
 
-print(class_labels)
+# print(class_labels)
 # print(class_labels)
 df = df_full[features]
+print(df.head())
 # Number of Clusters
-k = 8
+k = 3
 # Maximum number of iterations
 MAX_ITER = 50
 # Number of data points
 n = len(df)
 # Fuzzy parameter
 m = 2  # Select a value greater than 1 else it will be knn
-mL = 5.5
-mU = 6.5
-alpha = 0.1
+mL = 1.1
+mU = 6.1
+alpha = 8.7
 # terminated creterion
 e = 0.01
 
@@ -178,7 +182,6 @@ def fuzzyCoefficientMatrix():
         for j in range(int(n / k)):
             delta[i] += distances[i][j]
     # print(delta[0])
-    delta.sort()
     deltaMin = min(delta)
     deltaMax = max(delta)
 
@@ -258,8 +261,8 @@ def fuzzyCMeansClustering():  # Third iteration Random vectors from data
         curr += 1
     print("---------------------------")
     print("Partition matrix:")
-    # for i in range (0,149):
-    # print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
+    for i in range (0,149):
+        print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
 
     # print(np.array(cluster_labels))
     # print(np.array(cluster_labels).shape)
@@ -284,10 +287,10 @@ def MCFCMeansClustering():
             print("Cluster Centers:")
             print(np.array(cluster_centers))
         curr += 1
-    # print("---------------------------")
-    # print("Partition matrix:")
-    # for i in range(0, 149):
-    #     print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
+    print("---------------------------")
+    print("Partition matrix:")
+    for i in range(0, 149):
+        print(np.max(membership_mat[i]), np.array(membership_mat)[i], cluster_labels[i])
 
     # print(np.array(cluster_labels))
     # print(np.array(cluster_labels).shape)
@@ -307,8 +310,7 @@ def ASWCValidationCriteria():
     IntraAVGdist = [0]*n
     minInterAVG = [0]*n
     occ = Counter(labels)
-    print(occ[0], occ[1], occ[2])
-
+    print(occ)
     rows, cols = (k, n)
     cluster = [[0 for i in range(cols)] for j in range(rows)]
 
@@ -334,7 +336,7 @@ def ASWCValidationCriteria():
                 t = labels[j]
                 InterAVGdist[i][t] += dst[i][j]
 
-    print(np.array(InterAVGdist))
+    # print(np.array(InterAVGdist))
 
     for i in range(n):
         for j in range(k):
@@ -344,14 +346,19 @@ def ASWCValidationCriteria():
         InterAVGdist[i].sort()
         minInterAVG[i] = InterAVGdist[i][1]
 
-    print(np.array(InterAVGdist))
-    print(np.array(IntraAVGdist))
+    # print(np.array(InterAVGdist))
+    # print(np.array(IntraAVGdist))
 
     ASWC = sum((minInterAVG[i] / (IntraAVGdist[i] + eps)) for i in range(n))
     ASWC /= n
     return ASWC
 
 
+def DB_index():
+    print("DB_score: ", sklearn.metrics.davies_bouldin_score(df, labels))
+
+
+DB_index()
 ASWC = ASWCValidationCriteria()
 print("ASWC: ", ASWC)
 
