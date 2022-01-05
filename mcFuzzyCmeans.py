@@ -199,7 +199,7 @@ class MCFuzzyCmeans():
         curr = 0
         acc = []
         MCFCMCoeff = self.fuzzyCoefficientMatrix()
-        print(np.array(MCFCMCoeff))
+     
         # arr = [50, 52, 77, 101, 106, 113, 119, 121,
         #        123, 126, 127, 133, 138, 142, 146, 149]
         # for i in arr:
@@ -219,26 +219,25 @@ class MCFuzzyCmeans():
             curr += 1
         print("---------------------------")
         print("Partition matrix:")
-        for i in range(0, 150):
+        for i in range(0, self.n):
             print(i, np.max(membership_mat[i]), np.array(
                 membership_mat)[i], cluster_labels[i])
 
         # print(np.array(cluster_labels))
         # print(np.array(cluster_labels).shape)
-        a = self.accuracy(cluster_labels, self.class_labels)
-        print("Accuracy = ", a)
+        # a = self.accuracy(cluster_labels, self.class_labels)
+        # print("Accuracy = ", a)
         # return cluster_labels, cluster_centers
         return cluster_labels, cluster_centers, acc
 
 
-X = MCFuzzyCmeans()
-X.read_file('Iris.csv')
-X.set_param(3, 1.1, 9.1, 2.5)
-labels, centers, acc = X.MCFCM()
+# X = MCFuzzyCmeans()
+# X.read_file('Iris.csv')
+# X.set_param(3, 1.1, 9.1, 2.5)
+# labels, centers, acc = X.MCFCM()
 
-df = X.df
-X1 = EvaluationCriteria(df, labels)
-X1.ASWC()
-print("DB_score: ", sklearn.metrics.davies_bouldin_score(df, labels))
-print(np.array(labels))
-print(Counter(labels))
+# df = X.df
+# X1 = EvaluationCriteria(df, labels)
+# X1.ASWC()
+# print("DB_score: ", sklearn.metrics.davies_bouldin_score(df, labels))
+

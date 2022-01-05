@@ -29,7 +29,6 @@ class EvaluationCriteria:
         df = self.df
         eps = math.pow(10, -6)
         dst = self.initDistancesMatrix()
-
         rows, cols = (n, k)
         InterAVGdist = [[0 for i in range(cols)] for j in range(rows)]
         IntraAVGdist = [0]*n
@@ -61,7 +60,7 @@ class EvaluationCriteria:
                     InterAVGdist[i][t] += dst[i][j]
 
         # print(np.array(InterAVGdist))
-        ASWC_matrix = [0]*150
+        ASWC_matrix = [0]*n
         for i in range(n):
             for j in range(k):
                 if InterAVGdist[i][j] != 0:
@@ -77,5 +76,5 @@ class EvaluationCriteria:
                    for i in range(n))
         ASWC /= n
         # print(np.array(ASWC_matrix))
-        print("ASWC_index: ", ASWC)
-        return ASWC_matrix
+        # print("ASWC_index: ", ASWC)
+        return ASWC_matrix, ASWC

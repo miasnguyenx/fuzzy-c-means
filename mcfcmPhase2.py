@@ -195,7 +195,11 @@ class MCFCMeansPhase2():
             ]
             #
             for j in range(k):
-                coeff = 2 / (MCFCMCoeff[i] - 1)
+                try:
+                    coeff = 2 / (MCFCMCoeff[i] - 1)
+                except:
+                    print(MCFCMCoeff[i])
+                    exit()
                 den = sum(
                     [math.pow(float(distances[j] / distances[c]), coeff)
                      for c in range(k)]
@@ -231,18 +235,18 @@ class MCFCMeansPhase2():
                 print(np.array(cluster_centers))
             curr += 1
         self.labels = cluster_labels
-        print("---------------------------")
-        print("Partition matrix:")
-        for i in range(0, 150):
-            print(i, np.max(membership_mat[i]), np.array(
-                membership_mat)[i], cluster_labels[i])
-        print(np.array(cluster_labels))
-        print(np.array(cluster_labels).shape)
+        # print("---------------------------")
+        # print("Partition matrix:")
+        # for i in range(0, 150):
+        #     print(i, np.max(membership_mat[i]), np.array(
+        #         membership_mat)[i], cluster_labels[i])
+        # print(np.array(cluster_labels))
+        # print(np.array(cluster_labels).shape)
 
-        a = self.accuracy(cluster_labels, self.class_labels)
-        print("Accuracy = ", a)
-        print("DB_score: ", sklearn.metrics.davies_bouldin_score(
-            self.df, cluster_labels))
+        # a = self.accuracy(cluster_labels, self.class_labels)
+        # print("Accuracy = ", a)
+        # print("DB_score: ", sklearn.metrics.davies_bouldin_score(
+        #     self.df, cluster_labels))
         return cluster_labels, cluster_centers, acc
 
     def ASWCoefficientMatrix(self):
@@ -251,13 +255,13 @@ class MCFCMeansPhase2():
         mL = self.mL
         alpha = self.alpha
         tmp = EvaluationCriteria(self.df, self.labels)
-        ASWC_matrix = tmp.ASWC()
+        ASWC_matrix, x = tmp.ASWC()
 
-        FuzzyCoeff = [0]*150
+        FuzzyCoeff = [0]*self.n
         max = np.max(ASWC_matrix)
         min = np.min(ASWC_matrix)
-        for i in range(150):
-            X_std = math.pow((ASWC_matrix[i] - min) / (max - min), 2.5)
+        for i in range(self.n):
+            X_std = math.pow((ASWC_matrix[i] - min) / (max - min), alpha)
             FuzzyCoeff[i] = X_std * (mU - mL) + mL
         return FuzzyCoeff
 
@@ -267,7 +271,7 @@ class MCFCMeansPhase2():
         curr = 0
         acc = []
         MCFCMCoeff = self.ASWCoefficientMatrix()
-        print(np.array(MCFCMCoeff))
+        # print(np.array(MCFCMCoeff))
         while curr < self.maxIter:
             cluster_centers = self.calculateClusterCenter_phase2(
                 membership_mat, MCFCMCoeff)
@@ -280,23 +284,21 @@ class MCFCMeansPhase2():
                 print("Cluster Centers:")
                 print(np.array(cluster_centers))
             curr += 1
-        for i in range(0, 150):
-            print(i, np.max(membership_mat[i]), np.array(
-                membership_mat)[i], cluster_labels[i])
-        print(np.array(cluster_labels))
-        a = self.accuracy(cluster_labels, self.class_labels)
-        print("Accuracy = ", a)
+        # for i in range(0, 150):
+        #     print(i, np.max(membership_mat[i]), np.array(
+        #         membership_mat)[i], cluster_labels[i])
+        # print(np.array(cluster_labels))
+        # a = self.accuracy(cluster_labels, self.class_labels)
+        # print("Accuracy = ", a)
         return cluster_labels, cluster_centers, acc
 
 
-X = MCFCMeansPhase2()
-X.read_file('Iris.csv')
-X.set_param(3, 2, 1.1, 9.1, 2.5)
-labels, centers, acc = X.MCFCM_phase2()
-df = X.df
-X1 = EvaluationCriteria(df, labels)
-X1.ASWC()
-print("DB_score: ", sklearn.metrics.davies_bouldin_score(df, labels))
-print(np.array(labels))
+# X = MCFCMeansPhase2()
+# X.read_file('Iris.csv')
+# X.set_param(3, 2, 1.1, 9.1, 2.5)
+# labels, centers, acc = X.MCFCM_phase2()
 
-print(Counter(labels))
+# X1 = EvaluationCriteria(X.df, labels)
+# X1.ASWC()
+# print("DB_score: ", sklearn.metrics.davies_bouldin_score(X.df, labels))
+

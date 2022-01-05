@@ -12,7 +12,7 @@ from scipy.spatial import distance
 from scipy.stats import multivariate_normal  # for generating pdf
 
 # Show data
-df_full = pd.read_csv("Iris.csv")  # iris data
+df_full = pd.read_csv("Ecoli.csv")  # iris data
 df_full.head()
 
 # Drop a column
@@ -100,8 +100,6 @@ def initializeMembershipMatrix():  # initializing the membership matrix
 
 
 membership_mat = initializeMembershipMatrix()
-print(membership_mat)
-print(list(zip(*membership_mat)))
 
 # Param: membership matrix
 

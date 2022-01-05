@@ -1,5 +1,6 @@
 from collections import Counter
 from sklearn import metrics
+from sklearn.metrics import accuracy_score
 import sklearn
 from sklearn.metrics import davies_bouldin_score
 import pandas as pd  # reading all required header files
@@ -21,7 +22,7 @@ class FuzzyCmeans:
         self.e = 0.01
 
     def read_file(self, name):
-        
+
         df_full = pd.read_csv(name)  # iris data
         df_full.head()
 
@@ -48,8 +49,7 @@ class FuzzyCmeans:
         correct_pred = 0
         # find max of a set base on key value as the element has the most occurences
         seto = max(set(cluster_labels[0:50]), key=cluster_labels[0:50].count)
-        vers = max(set(cluster_labels[50:100]),
-                   key=cluster_labels[50:100].count)
+        vers = max(set(cluster_labels[50:100]), key=cluster_labels[50:100].count)
         virg = max(set(cluster_labels[100:]), key=cluster_labels[100:].count)
 
         for i in range(len(df)):
@@ -78,8 +78,9 @@ class FuzzyCmeans:
         membership_mat = []
         # initialize the membership maxtrix for each objects
         for i in range(n):
-            random_num_list = [random.random()
-                               for i in range(k)]  # random a k-values array
+            random_num_list = [
+                random.random() for i in range(k)
+            ]  # random a k-values array
 
             summation = sum(random_num_list)  # sum of all values in array
             temp_list = [x / summation for x in random_num_list]
@@ -128,14 +129,12 @@ class FuzzyCmeans:
         for i in range(n):
             x = list(df.iloc[i])
             distances = [
-                np.linalg.norm(
-                    np.array(list(map(operator.sub, x, cluster_centers[j]))))
+                np.linalg.norm(np.array(list(map(operator.sub, x, cluster_centers[j]))))
                 for j in range(k)
             ]
             for j in range(k):
                 den = sum(
-                    [math.pow(float(distances[j] / distances[c]), p)
-                     for c in range(k)]
+                    [math.pow(float(distances[j] / distances[c]), p) for c in range(k)]
                 )
                 membership_mat[i][j] = float(1 / den)
         return membership_mat
@@ -145,8 +144,9 @@ class FuzzyCmeans:
         cluster_labels = list()
         for i in range(n):
             # index of x - val is the value of enumerate list
-            max_val, idx = max((val, idx)
-                               for (idx, val) in enumerate(membership_mat[i]))
+            max_val, idx = max(
+                (val, idx) for (idx, val) in enumerate(membership_mat[i])
+            )
             cluster_labels.append(idx)
         return cluster_labels
 
@@ -157,38 +157,58 @@ class FuzzyCmeans:
         acc = []
         while curr < self.maxIter:
             cluster_centers = self.calculateClusterCenter(membership_mat)
-            membership_mat = self.updateMembershipValue(
-                membership_mat, cluster_centers)
+            membership_mat = self.updateMembershipValue(membership_mat, cluster_centers)
             cluster_labels = self.getClusters(membership_mat)
 
             acc.append(cluster_labels)
 
-            if curr == 0:
-                print("Cluster Centers:")
-                print(np.array(cluster_centers))
+            # if curr == 0:
+            #     print("Cluster Centers:")
+            #     print(np.array(cluster_centers))
             curr += 1
         # self.labels = cluster_labels
-        print("---------------------------")
-        print("Partition matrix:")
-        for i in range(0, 149):
-            print(np.max(membership_mat[i]), np.array(
-                membership_mat)[i], cluster_labels[i])
-        print(np.array(list(enumerate(cluster_labels))))
-        print(np.array(cluster_labels).shape)
-        
-        a = self.accuracy(cluster_labels, self.class_labels)
-        print("Accuracy = ", a)
-        
-        return cluster_labels, cluster_centers, acc
-    
-X = FuzzyCmeans()
-X.read_file('Iris.csv')
-X.set_param(3, 2)
-labels, centers, acc = X.FCM()
-print(np.array(labels))
-df = X.df
-X1 = EvaluationCriteria(df,labels)
-X1.ASWC()
-print("DB_score: ", sklearn.metrics.davies_bouldin_score(df, labels))
-print(Counter(labels))
+        # print("---------------------------")
+        # print("Partition matrix:")
+        # for i in range(0, 149):
+        #     print(np.max(membership_mat[i]), np.array(
+        #         membership_mat)[i], cluster_labels[i])
+        # print(np.array(list(enumerate(cluster_labels))))
+        # print(np.array(cluster_labels).shape)
 
+        # a = self.accuracy(cluster_labels, self.class_labels)
+        # print("Accuracy = ", a)
+        self.cluster_labels = cluster_labels
+        self.cluster_centers = cluster_centers
+        self.acc = acc
+        return cluster_labels, cluster_centers, acc
+
+    def ASWC(self):
+        array, result = EvaluationCriteria(self.df, self.cluster_labels).ASWC()
+        # X1 = EvaluationCriteria(self.df, self.cluster_labels)
+        # array, result = X1.ASWC()
+        return array, result
+
+    def Davies_Bouldin(self):
+        b = sklearn.metrics.davies_bouldin_score(self.df, self.cluster_labels)
+        b = round(b, 3)
+        return b
+
+    def Rand_score(self):
+        r = sklearn.metrics.rand_score(self.cluster_labels, self.class_labels)
+        r = round(r, 3)
+        return r
+
+    def Calinski_harabasz(self):
+        c = metrics.calinski_harabasz_score(self.df, self.cluster_labels)
+        c = round(c, 3)
+        return c
+
+X = FuzzyCmeans()
+X.read_file("Iris.csv")
+X.set_param(3, 2)
+X.FCM()
+print(X.Calinski_harabasz())
+print(X.Davies_Bouldin())
+print(X.Rand_score())
+array, result = X.ASWC()
+print(result)
